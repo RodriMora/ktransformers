@@ -1,3 +1,4 @@
+# Embedding tokens configuration
 - match:
     name: "^model.embed_tokens"
   replace:
@@ -6,33 +7,39 @@
         generate_device: "cpu"
         prefill_device: "cpu"
 
-# Rotary Embedding split across 4 GPUs
+# Rotary Embeddings for GPU 0 (layers 0-15)
 - match:
-    name: "^model\\.layers\\.(0|[1-9]|[12][0-9])\\."
+    name: "^model\\.layers\\.(0|[1-9]|1[0-5])\\."
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3RotaryEmbedding
   replace:
     class: ktransformers.operators.RoPE.RotaryEmbeddingV3
     kwargs:
       generate_device: "cuda:0"
       prefill_device: "cuda:0"
+
+# Rotary Embeddings for GPU 1 (layers 16-30)
 - match:
-    name: "^model\\.layers\\.([3][0-9])\\."
+    name: "^model\\.layers\\.(1[6-9]|2[0-9]|30)\\."
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3RotaryEmbedding
   replace:
     class: ktransformers.operators.RoPE.RotaryEmbeddingV3
     kwargs:
       generate_device: "cuda:1"
       prefill_device: "cuda:1"
+
+# Rotary Embeddings for GPU 2 (layers 31-45)
 - match:
-    name: "^model\\.layers\\.([4][0-9])\\."
+    name: "^model\\.layers\\.(3[1-9]|4[0-5])\\."
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3RotaryEmbedding
   replace:
     class: ktransformers.operators.RoPE.RotaryEmbeddingV3
     kwargs:
       generate_device: "cuda:2"
       prefill_device: "cuda:2"
+
+# Rotary Embeddings for GPU 3 (layers 46-60)
 - match:
-    name: "^model\\.layers\\.([56][0-9])\\."
+    name: "^model\\.layers\\.(4[6-9]|5[0-9]|60)\\."
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3RotaryEmbedding
   replace:
     class: ktransformers.operators.RoPE.RotaryEmbeddingV3
@@ -40,9 +47,9 @@
       generate_device: "cuda:3"
       prefill_device: "cuda:3"
 
-# Linear layers split across 4 GPUs
+# Linear layers for GPU 0 (layers 0-15)
 - match:
-    name: "^model\\.layers\\.(0|[1-9]|[12][0-9])\\.(?!self_attn\\.kv_b_proj).*$"
+    name: "^model\\.layers\\.(0|[1-9]|1[0-5])\\.(?!self_attn\\.kv_b_proj).*$"
     class: torch.nn.Linear
   replace:
     class: ktransformers.operators.linear.KTransformersLinear
@@ -51,8 +58,10 @@
       prefill_device: "cuda:0"
       generate_op: "KLinearMarlin"
       prefill_op: "KLinearTorch"
+
+# Linear layers for GPU 1 (layers 16-30)
 - match:
-    name: "^model\\.layers\\.([3][0-9])\\.(?!self_attn\\.kv_b_proj).*$"
+    name: "^model\\.layers\\.(1[6-9]|2[0-9]|30)\\.(?!self_attn\\.kv_b_proj).*$"
     class: torch.nn.Linear
   replace:
     class: ktransformers.operators.linear.KTransformersLinear
@@ -61,8 +70,10 @@
       prefill_device: "cuda:1"
       generate_op: "KLinearMarlin"
       prefill_op: "KLinearTorch"
+
+# Linear layers for GPU 2 (layers 31-45)
 - match:
-    name: "^model\\.layers\\.([4][0-9])\\.(?!self_attn\\.kv_b_proj).*$"
+    name: "^model\\.layers\\.(3[1-9]|4[0-5])\\.(?!self_attn\\.kv_b_proj).*$"
     class: torch.nn.Linear
   replace:
     class: ktransformers.operators.linear.KTransformersLinear
@@ -71,8 +82,10 @@
       prefill_device: "cuda:2"
       generate_op: "KLinearMarlin"
       prefill_op: "KLinearTorch"
+
+# Linear layers for GPU 3 (layers 46-60)
 - match:
-    name: "^model\\.layers\\.([56][0-9])\\.(?!self_attn\\.kv_b_proj).*$"
+    name: "^model\\.layers\\.(4[6-9]|5[0-9]|60)\\.(?!self_attn\\.kv_b_proj).*$"
     class: torch.nn.Linear
   replace:
     class: ktransformers.operators.linear.KTransformersLinear
@@ -82,33 +95,39 @@
       generate_op: "KLinearMarlin"
       prefill_op: "KLinearTorch"
 
-# MLP/MoE layers split across 4 GPUs
+# MLP configurations for GPU 0 (layers 0-15)
 - match:
-    name: "^model\\.layers\\.(0|[1-9]|[12][0-9])\\.mlp$"
+    name: "^model\\.layers\\.(0|[1-9]|1[0-5])\\.mlp$"
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3MoE
   replace:
     class: ktransformers.operators.experts.KDeepseekV3MoE
     kwargs:
       generate_device: "cuda:0"
       prefill_device: "cuda:0"
+
+# MLP configurations for GPU 1 (layers 16-30)
 - match:
-    name: "^model\\.layers\\.([3][0-9])\\.mlp$"
+    name: "^model\\.layers\\.(1[6-9]|2[0-9]|30)\\.mlp$"
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3MoE
   replace:
     class: ktransformers.operators.experts.KDeepseekV3MoE
     kwargs:
       generate_device: "cuda:1"
       prefill_device: "cuda:1"
+
+# MLP configurations for GPU 2 (layers 31-45)
 - match:
-    name: "^model\\.layers\\.([4][0-9])\\.mlp$"
+    name: "^model\\.layers\\.(3[1-9]|4[0-5])\\.mlp$"
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3MoE
   replace:
     class: ktransformers.operators.experts.KDeepseekV3MoE
     kwargs:
       generate_device: "cuda:2"
       prefill_device: "cuda:2"
+
+# MLP configurations for GPU 3 (layers 46-60)
 - match:
-    name: "^model\\.layers\\.([56][0-9])\\.mlp$"
+    name: "^model\\.layers\\.(4[6-9]|5[0-9]|60)\\.mlp$"
     class: ktransformers.models.modeling_deepseek_v3.DeepseekV3MoE
   replace:
     class: ktransformers.operators.experts.KDeepseekV3MoE
@@ -116,33 +135,39 @@
       generate_device: "cuda:3"
       prefill_device: "cuda:3"
 
-# MoE Gate layers split across 4 GPUs
+# MoE Gate configurations for GPU 0 (layers 0-15)
 - match:
-    name: "^model\\.layers\\.(0|[1-9]|[12][0-9])\\.mlp\\.gate$"
+    name: "^model\\.layers\\.(0|[1-9]|1[0-5])\\.mlp\\.gate$"
     class: ktransformers.models.modeling_deepseek_v3.MoEGate
   replace:
     class: ktransformers.operators.gate.KMoEGate
     kwargs:
       generate_device: "cuda:0"
       prefill_device: "cuda:0"
+
+# MoE Gate configurations for GPU 1 (layers 16-30)
 - match:
-    name: "^model\\.layers\\.([3][0-9])\\.mlp\\.gate$"
+    name: "^model\\.layers\\.(1[6-9]|2[0-9]|30)\\.mlp\\.gate$"
     class: ktransformers.models.modeling_deepseek_v3.MoEGate
   replace:
     class: ktransformers.operators.gate.KMoEGate
     kwargs:
       generate_device: "cuda:1"
       prefill_device: "cuda:1"
+
+# MoE Gate configurations for GPU 2 (layers 31-45)
 - match:
-    name: "^model\\.layers\\.([4][0-9])\\.mlp\\.gate$"
+    name: "^model\\.layers\\.(3[1-9]|4[0-5])\\.mlp\\.gate$"
     class: ktransformers.models.modeling_deepseek_v3.MoEGate
   replace:
     class: ktransformers.operators.gate.KMoEGate
     kwargs:
       generate_device: "cuda:2"
       prefill_device: "cuda:2"
+
+# MoE Gate configurations for GPU 3 (layers 46-60)
 - match:
-    name: "^model\\.layers\\.([56][0-9])\\.mlp\\.gate$"
+    name: "^model\\.layers\\.(4[6-9]|5[0-9]|60)\\.mlp\\.gate$"
     class: ktransformers.models.modeling_deepseek_v3.MoEGate
   replace:
     class: ktransformers.operators.gate.KMoEGate
@@ -150,9 +175,9 @@
       generate_device: "cuda:3"
       prefill_device: "cuda:3"
 
-# Expert layers with CPU offloading
+# Expert configurations for GPU 0 (layers 0-15)
 - match:
-    name: "^model\\.layers\\.(0|[1-9]|[12][0-9])\\.mlp\\.experts$"
+    name: "^model\\.layers\\.(0|[1-9]|1[0-5])\\.mlp\\.experts$"
   replace:
     class: ktransformers.operators.experts.KTransformersExperts
     kwargs:
@@ -162,8 +187,10 @@
       generate_op: "KExpertsCPU"
       out_device: "cuda:0"
   recursive: False
+
+# Expert configurations for GPU 1 (layers 16-30)
 - match:
-    name: "^model\\.layers\\.([3][0-9])\\.mlp\\.experts$"
+    name: "^model\\.layers\\.(1[6-9]|2[0-9]|30)\\.mlp\\.experts$"
   replace:
     class: ktransformers.operators.experts.KTransformersExperts
     kwargs:
@@ -173,8 +200,10 @@
       generate_op: "KExpertsCPU"
       out_device: "cuda:1"
   recursive: False
+
+# Expert configurations for GPU 2 (layers 31-45)
 - match:
-    name: "^model\\.layers\\.([4][0-9])\\.mlp\\.experts$"
+    name: "^model\\.layers\\.(3[1-9]|4[0-5])\\.mlp\\.experts$"
   replace:
     class: ktransformers.operators.experts.KTransformersExperts
     kwargs:
@@ -184,8 +213,10 @@
       generate_op: "KExpertsCPU"
       out_device: "cuda:2"
   recursive: False
+
+# Expert configurations for GPU 3 (layers 46-60)
 - match:
-    name: "^model\\.layers\\.([56][0-9])\\.mlp\\.experts$"
+    name: "^model\\.layers\\.(4[6-9]|5[0-9]|60)\\.mlp\\.experts$"
   replace:
     class: ktransformers.operators.experts.KTransformersExperts
     kwargs:
@@ -196,30 +227,36 @@
       out_device: "cuda:3"
   recursive: False
 
-# Attention layers split across 4 GPUs
+# Attention configurations for GPU 0 (layers 0-15)
 - match:
-    name: "^model\\.layers\\.(0|[1-9]|[12][0-9])\\.self_attn$"
+    name: "^model\\.layers\\.(0|[1-9]|1[0-5])\\.self_attn$"
   replace:
     class: ktransformers.operators.attention.KDeepseekV2Attention
     kwargs:
       generate_device: "cuda:0"
       prefill_device: "cuda:0"
+
+# Attention configurations for GPU 1 (layers 16-30)
 - match:
-    name: "^model\\.layers\\.([3][0-9])\\.self_attn$"
+    name: "^model\\.layers\\.(1[6-9]|2[0-9]|30)\\.self_attn$"
   replace:
     class: ktransformers.operators.attention.KDeepseekV2Attention
     kwargs:
       generate_device: "cuda:1"
       prefill_device: "cuda:1"
+
+# Attention configurations for GPU 2 (layers 31-45)
 - match:
-    name: "^model\\.layers\\.([4][0-9])\\.self_attn$"
+    name: "^model\\.layers\\.(3[1-9]|4[0-5])\\.self_attn$"
   replace:
     class: ktransformers.operators.attention.KDeepseekV2Attention
     kwargs:
       generate_device: "cuda:2"
       prefill_device: "cuda:2"
+
+# Attention configurations for GPU 3 (layers 46-60)
 - match:
-    name: "^model\\.layers\\.([56][0-9])\\.self_attn$"
+    name: "^model\\.layers\\.(4[6-9]|5[0-9]|60)\\.self_attn$"
   replace:
     class: ktransformers.operators.attention.KDeepseekV2Attention
     kwargs:
@@ -234,34 +271,37 @@
     kwargs:
       per_layer_prefill_intput_threshold: 0
       transfer_map:
-        30: "cuda:1"
-        40: "cuda:2"
-        50: "cuda:3"
+        16: "cuda:1"
+        31: "cuda:2"
+        46: "cuda:3"
 
-# Default device mappings for remaining layers
+# Default device mapping for layers
 - match:
-    name: "^model\\.layers\\.(0|[1-9]|[12][0-9])\\."
+    name: "^model\\.layers\\.(0|[1-9]|1[0-5])\\."
   replace:
     class: "default"
     kwargs:
       generate_device: "cuda:0"
       prefill_device: "cuda:0"
+
 - match:
-    name: "^model\\.layers\\.([3][0-9])\\."
+    name: "^model\\.layers\\.(1[6-9]|2[0-9]|30)\\."
   replace:
     class: "default"
     kwargs:
       generate_device: "cuda:1"
       prefill_device: "cuda:1"
+
 - match:
-    name: "^model\\.layers\\.([4][0-9])\\."
+    name: "^model\\.layers\\.(3[1-9]|4[0-5])\\."
   replace:
     class: "default"
     kwargs:
       generate_device: "cuda:2"
       prefill_device: "cuda:2"
+
 - match:
-    name: "(^model\\.layers\\.([56][0-9])\\.)|(^model.norm)|(^lm_head)"
+    name: "(^model\\.layers\\.(4[6-9]|5[0-9]|60)\\.)|model\\.norm|lm_head"
   replace:
     class: "default"
     kwargs:
